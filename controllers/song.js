@@ -9,8 +9,21 @@ const getSongById = async(req, res) => {
       const data = await songModel.findById(id)
       res.send({data})
     } catch(e){
-      handleHttpError(res, "Error getting item")
+      handleHttpError(res, "Error getting song")
     }
+}
+
+const getSongs = async(req, res) => {
+  try{
+    const search = req.query.search || '';
+    const data = await songModel
+      .find({
+        title: { $regex: search, $options: 'i' }
+      })
+    res.send({ data })
+  } catch(e){
+    handleHttpError(res, "Error getting songs")
+  }
 }
 
 const createSong = async (req, res) => {
@@ -46,8 +59,18 @@ const createSong = async (req, res) => {
 
       res.send({data})
     } catch(e){
-        handleHttpError(res, "Error creating item")
+        handleHttpError(res, "Error creating song")
     }
 }
 
-module.exports = {getSongById, createSong}
+const deleteSong = async(req, res) => {
+  try{
+    const {id} = req.params
+    const data = await songModel.findByIdAndDelete(id)
+    res.send({data})
+  } catch(e){
+    handleHttpError(res, "Error deleting song")
+  }
+}
+
+module.exports = {getSongById, createSong, getSongs, deleteSong}
