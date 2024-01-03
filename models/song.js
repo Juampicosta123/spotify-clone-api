@@ -3,56 +3,57 @@ const mongoose = require('mongoose');
 const SongScheme = new mongoose.Schema(
   {
     albumId:{
-      type: String, //cambiar a mongoose.Schema.Types.ObjectId, ref: 'albums'
-      require: true
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: 'albums',
+      required: true
     },
     medianame:{
       type: String,
-      require: true
+      required: true
     },
     originalmedianame:{
       type: String,
-      require: true
+      required: true
     },
     extension:{
       type: String,
-      require: true
+      required: true
     },
     medialink:{
       type: String,
-      require: true
+      required: true
     },
     title: {
       type: String,
-      require: true
+      required: true
     },
     imagename: {
       type: String,
-      require: true
+      required: true
     }, 
     originalimagename: {
       type: String,
-      require: true
+      required: true
     },
     imageextension: {
       type: String,
-      require: true
+      required: true
     },
     imagelink: {
       type: String,
-      require: true
+      required: true
     },
     artists:{
      type: [String],
-     require: true
+     required: true
     },
     album:{
      type: String,
-     require: true
+     required: true
     },
     duration:{
      type:String,
-     require: true
+     required: true
     }
   },
   {

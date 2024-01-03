@@ -6,20 +6,28 @@ const { uploadMedia } = require('../utils/uploadMedia.js')
 const getSongById = async(req, res) => {
     try{
       const {id} = req.params
-      const data = await songModel.findById(id)
+      const data = await songModel.findById(id).populate('albumId')
       res.send({data})
     } catch(e){
+      console.log(e);
       handleHttpError(res, "Error getting song")
     }
 }
 
 const getSongs = async(req, res) => {
   try{
+    const page = parseInt(req.query.page) - 1 || 0;
+    const limit = parseInt(req.query.limit) || null;
     const search = req.query.search || '';
     const data = await songModel
       .find({
         title: { $regex: search, $options: 'i' }
       })
+      .sort({ _id: -1 })
+      .skip(page)
+      .limit(limit)
+      .populate('albumId');
+      
     res.send({ data })
   } catch(e){
     handleHttpError(res, "Error getting songs")

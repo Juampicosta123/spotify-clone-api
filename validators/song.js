@@ -6,7 +6,7 @@ const createSongSchema = z.object({
     albumId: z.string(),
     artists: z.array(z.string()),
     album: z.string(),
-    duration: z.string(),
+    duration: z.string()
   })
   
   function validateCreateSong(object) {
