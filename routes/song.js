@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.get('/:id',  getSongById);
 router.get('/',  getSongs);
-router.post('/', uploadMiddleware.array('media', 2),  createSong);
+router.post('/', uploadMiddleware.single('media'),  createSong);
 router.delete('/:id',  deleteSong);
 
 module.exports = router;

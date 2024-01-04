@@ -30,23 +30,15 @@ const PlaylistScheme = new mongoose.Schema(
      type:String,
      required: true
     },
-    albumId:{
-      type: mongoose.Schema.Types.ObjectId, 
-      ref: 'albums',
-      required: true
-    },
     artists:{
         type: [String],
         required: true
     },
-    songs: [
-      {
-        songId: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: 'songs'
-        }
-      }
-    ]
+    songs: {
+    type: [ mongoose.Schema.Types.ObjectId],
+    ref: 'songs',
+    required:false
+  }
   },
   {
     timestamps: true,

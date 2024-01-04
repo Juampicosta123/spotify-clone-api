@@ -6,7 +6,7 @@ const { uploadMedia } = require('../utils/uploadMedia.js')
 const getAlbumById = async(req, res) => {
     try{
       const {id} = req.params
-      const data = await albumModel.findById(id).populate('songs.songId')
+      const data = await albumModel.findById(id).populate('songs')
       res.send({data})
     } catch(e){
       handleHttpError(res, "Error getting album")
@@ -25,7 +25,7 @@ const getAlbums = async(req, res) => {
       .sort({ _id: -1 })
       .skip(page)
       .limit(limit)
-      .populate('songs.songId');
+      .populate('songs');
 
     res.send({ data });
   } catch(e){
@@ -37,7 +37,7 @@ const createAlbum = async (req, res) => {
     try{
       const result = validateCreateAlbum(req.body)
       if(!result.success) throw new Error('Invalid request')
-      const {title, duration, songs} = result.data
+      const {title, artistOwner} = result.data
 
       if(!req.file) throw new Error('You should include image file');
 
@@ -51,8 +51,7 @@ const createAlbum = async (req, res) => {
         imagelink,
         imageextension,
         imagename,
-        duration,
-        songs
+        artistOwner
        })
 
       res.send({data})

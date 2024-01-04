@@ -12,9 +12,10 @@ const uploadMedia = async (file) => {
   const uploaded = await cloudinary.v2.uploader.upload(path, {
     resource_type: 'auto'
   });
+  const duration = uploaded.duration;
   const medianame = uploaded.secure_url.split('/')[7].split('.')[0];
   const medialink = uploaded.secure_url;
-  return { medialink, extension, medianame };
+  return { medialink, extension, medianame, duration };
 };
 
 module.exports = { uploadMedia }

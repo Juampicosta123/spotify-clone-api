@@ -22,6 +22,10 @@ const QueueScheme = new mongoose.Schema(
         played: {
           type: Boolean,
           default: false
+        },
+        position:{
+          type: Number,
+          default: 0
         }
       }
     ],

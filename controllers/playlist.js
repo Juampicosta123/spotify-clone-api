@@ -1,12 +1,13 @@
 const playlistModel = require('../models/playlist.js');
+const songModel = require('../models/song.js');
 const { handleHttpError } = require('../utils/handleError');
-const { validateCreatePlaylist } = require('../validators/playlist');
+const { validateCreatePlaylist, validateAddSongToPlaylist } = require('../validators/playlist');
 const { uploadMedia } = require('../utils/uploadMedia.js')
 
 const getPlaylistById = async(req, res) => {
     try{
       const {id} = req.params
-      const data = await playlistModel.findById(id).populate('songs.songId').populate('albumId')
+      const data = await playlistModel.findById(id).populate('songs').populate('albumId')
       res.send({data})
     } catch(e){
       handleHttpError(res, "Error getting playlist")
@@ -25,9 +26,8 @@ const getPlaylists = async(req, res) => {
       .sort({ _id: -1 })
       .skip(page)
       .limit(limit)
-      .populate('songs.songId')
+      .populate('songs')
       .populate('albumId')
-
 
     res.send({ data });
   } catch(e){
@@ -39,24 +39,14 @@ const createPlaylist = async (req, res) => {
     try{
       const result = validateCreatePlaylist(req.body)
       if(!result.success) throw new Error('Invalid request')
-      const {title, albumId, artists, owner, color} = result.data
+      const {title, owner, color} = result.data
 
       if(!req.file) throw new Error('You should include image file');
 
       const image = req.file;
       const originalimagename = image.originalname;
       const { medialink: imagelink, extension: imageextension, medianame: imagename } = await uploadMedia(image);
-      const songs = [
-      {
-      songId: "659441b274d0128a893ac1cf"
-      },
-      {
-        songId: "659433c2c19de07562a712df"
-        },
-        {
-          songId: "659433bbc19de07562a712dd"
-          }
-      ]
+
       const data = await playlistModel.create({
         title, 
         color,
@@ -64,10 +54,7 @@ const createPlaylist = async (req, res) => {
         imagelink,
         imageextension,
         imagename,
-        albumId, 
-        artists, 
-        owner,
-        songs
+        owner
        })
 
       res.send({data})
@@ -75,6 +62,48 @@ const createPlaylist = async (req, res) => {
       console.log(e);
         handleHttpError(res, "Error creating playlist")
     }
+}
+
+const addSongToPlaylist = async(req, res) => {
+  try{
+    const {id} = req.params
+    const result = validateAddSongToPlaylist(req.body)
+    if(!result.success) throw new Error('Invalid request')
+    const {songId} = result.data
+
+    const song = await songModel.findById(songId)
+
+    const artists = song.artists
+     
+    const data = await playlistModel.findByIdAndUpdate(id, {
+      $addToSet: {
+        "songs": { $each: [songId] },
+        "artists": { $each: artists }
+      }
+    })
+    res.send({data})
+  } catch(e){
+    console.log(e);
+    handleHttpError(res, "Error adding song to playlist")
+  }
+}
+
+const deleteSongFromPlaylist = async(req, res) => {
+  try{
+    const {id} = req.params
+    const result = validateAddSongToPlaylist(req.body)
+    if(!result.success) throw new Error('Invalid request')
+    const {songId} = result.data
+    const data = await playlistModel.findByIdAndUpdate(id, {
+      $pull: {
+        "songs": songId
+      }
+    });
+    res.send({data})
+  } catch(e){
+    console.log(e);
+    handleHttpError(res, "Error deleting song from playlist")
+  }
 }
 
 const deletePlaylist = async(req, res) => {
@@ -87,4 +116,4 @@ const deletePlaylist = async(req, res) => {
   }
 }
 
-module.exports = {getPlaylistById, createPlaylist, getPlaylists, deletePlaylist}
+module.exports = {getPlaylistById, createPlaylist, getPlaylists, deletePlaylist, addSongToPlaylist, deleteSongFromPlaylist}

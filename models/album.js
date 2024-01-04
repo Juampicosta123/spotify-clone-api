@@ -24,16 +24,17 @@ const AlbumScheme = new mongoose.Schema(
     },
     duration:{
      type:String,
-     required: true
+     required:false
     },
-    songs: [
-      {
-        songId: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: 'songs'
-        }
-      }
-    ]
+    songs: {
+      type: [ mongoose.Schema.Types.ObjectId],
+      ref: 'songs',
+      required:false
+    },
+    artistOwner:{
+      type:String,
+      required:true
+    }
   },
   {
     timestamps: true,

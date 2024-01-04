@@ -1,7 +1,9 @@
 const songModel = require('../models/song');
+const albumModel = require('../models/album');
 const { handleHttpError } = require('../utils/handleError');
 const { validateCreateSong } = require('../validators/song');
 const { uploadMedia } = require('../utils/uploadMedia.js')
+const { getFormatedId } = require('../utils/getFormatedId.js')
 
 const getSongById = async(req, res) => {
     try{
@@ -38,35 +40,37 @@ const createSong = async (req, res) => {
     try{
       const result = validateCreateSong(req.body)
       if(!result.success) return res.status(400).send({error: result.error.issues})
-      const {title, album, albumId, artists, duration} = result.data
+     
+      const {title, albumId, artists} = result.data
 
-      if(req.files.length !== 2) throw new Error('You should include both files');
+      if(!req.file) throw new Error('You should include audio file');
 
-      const audio = req.files[1];
+      const audio = req.file;
       const originalmedianame = audio.originalname;
-      const { medialink, extension, medianame } = await uploadMedia(audio);
+      const { medialink, extension, medianame, duration } = await uploadMedia(audio);
 
-      const image = req.files[0];
-      const originalimagename = image.originalname;
-      const { medialink: imagelink, extension: imageextension, medianame: imagename } = await uploadMedia(image);
+      const album = await albumModel.findById(albumId)
 
       const data = await songModel.create({
         title, 
-        originalimagename,
-        imagelink,
-        imageextension,
-        imagename,
         albumId, 
-        album, 
+        album: album.title, 
         duration,  
         artists, 
         originalmedianame,
         medialink, 
         extension, 
-        medianame})
+        medianame
+      })
+      await albumModel.findByIdAndUpdate(albumId, {
+        $addToSet: {
+          "songs": { $each: [data._id] }        }
+      }
+      )
 
       res.send({data})
     } catch(e){
+      console.log(e);
         handleHttpError(res, "Error creating song")
     }
 }
