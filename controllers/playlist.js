@@ -7,9 +7,10 @@ const { uploadMedia } = require('../utils/uploadMedia.js')
 const getPlaylistById = async(req, res) => {
     try{
       const {id} = req.params
-      const data = await playlistModel.findById(id).populate('songs').populate('albumId')
+      const data = await playlistModel.findById(id).populate('songs')
       res.send({data})
     } catch(e){
+      console.log(e);
       handleHttpError(res, "Error getting playlist")
     }
 }
@@ -27,7 +28,6 @@ const getPlaylists = async(req, res) => {
       .skip(page)
       .limit(limit)
       .populate('songs')
-      .populate('albumId')
 
     res.send({ data });
   } catch(e){

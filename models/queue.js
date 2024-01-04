@@ -45,6 +45,10 @@ const QueueScheme = new mongoose.Schema(
       type: Boolean,
       default: false
     },
+    firstSong:{
+      type: Boolean,
+      default: true
+    },
   },
   {
     timestamps: true,

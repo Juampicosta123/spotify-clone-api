@@ -25,7 +25,7 @@ const getQueueById = async(req, res) => {
 const setRandomQueue = async(req, res) => {
   try{
     const {id} = req.params
-    const data = await queueModel.findByIdAndUpdate(id, [ { "$set": { "random": { "$eq": [false, "$random"] } } } ])
+    const data = await queueModel.findByIdAndUpdate(id, [ { "$set": { "random": { "$eq": [false, "$random"] } } } ], { new: true })
   
     res.send({data})
   } catch(e){
@@ -37,7 +37,7 @@ const setNextSong = async(req, res) => {
   try{
     const {id} = req.params
     const data = await queueModel.findById(id).lean()
-
+    let firstSong = false
     const currentSong = getFormatedId(data.nextSong)
     let nextSong
     const dataSongs = data.songs
@@ -51,14 +51,15 @@ const setNextSong = async(req, res) => {
     const nextSongs =  songs.filter(song => song.played === false );
 
     if(data.finished) throw new Error('This song is the last')
-
     if(data.random === true){
-      const randomElement = generateNextSong(nextSongs)
-      if(nextSongs.length === 0) {
+      const lastSong = songs?.filter(song => song.position === songs?.length)[0]
+      const nextSongFromArray = songs?.filter(song => getFormatedId(song.songId) === getFormatedId(data?.nextSong))[0]
+      if(lastSong?.position === nextSongFromArray.position) {
         await queueModel.findByIdAndUpdate(id, {finished: true})
         nextSong = data.nextSong
       } else {
-        nextSong = getFormatedId(randomElement.songId)
+        const randomElement = generateNextSong(nextSongs)
+        nextSong = getFormatedId(randomElement?.songId)
       }
     } else {
         const songsIds = dataSongs?.map(({ songId }) => getFormatedId(songId))
@@ -71,7 +72,10 @@ const setNextSong = async(req, res) => {
         nextSong = getFormatedId(songs[indexNextSong]?.songId)
       }
     }
-    const updated = await queueModel.findByIdAndUpdate(id, {currentSong, nextSong, songs})
+    const updated = await queueModel.findByIdAndUpdate(id, {currentSong, nextSong, songs, firstSong}, 
+      { new: true }).populate('currentSong')
+      console.log(updated);
+
     res.send({updated})
   } catch(e){
     console.log(e);
@@ -82,22 +86,32 @@ const setNextSong = async(req, res) => {
 const setPrevSong = async(req, res) => {
   try{
     const {id} = req.params
-    const data = await queueModel.findById(id).lean()
+    const data = await queueModel.findById(id).populate('currentSong').lean()
     const songs = data.songs
 
     const currentPosition = getCurrentPosition(songs, data.currentSong)
 
-    if(currentPosition === 1) throw new Error('This is the first song')
-
     const prevPosition = currentPosition - 1
-
-
 
     const currentSong = songs.filter(song => song.position === prevPosition)[0].songId
     const nextSong = data.currentSong
 
+    const newCurrentPosition = getCurrentPosition(songs, currentSong)
 
-    const updated = await queueModel.findByIdAndUpdate(id, {currentSong, nextSong, songs, finished: false})
+    let firstSong = false
+
+    if(newCurrentPosition === 1) {
+      firstSong = true
+    }
+
+    if(newCurrentPosition === 0) {
+      throw new Error('This is the first song')
+    }
+   
+
+
+    const updated = await queueModel.findByIdAndUpdate(id, {currentSong, nextSong, songs, finished: false, firstSong}, { new: true }).populate('currentSong')
+    console.log(updated);
     res.send({updated})
   } catch(e){
     console.log(e);
@@ -107,6 +121,7 @@ const setPrevSong = async(req, res) => {
 
 const createQueue = async (req, res) => {
     try{
+
       const result = validateCreateQueue(req.body)
       if(!result.success) throw new Error('Invalid request')
       const { from, fromType, random } = result.data
@@ -127,22 +142,39 @@ const createQueue = async (req, res) => {
 
       if(random) {
         const randomElementCurrent = generateNextSong(fromSongs)
-        currentSong = randomElementCurrent.songId
-        const nextSongs =  fromSongs.filter(song => song.songId !== currentSong );
-        const randomElementNext= generateNextSong(nextSongs)
-        nextSong = randomElementNext.songId
+        if(req.query.song) {
+          currentSong = req.query.song
+        } else {
+          currentSong = randomElementCurrent
+        }
+        const nextSongs =  fromSongs.filter(song => song !== currentSong );
+        const randomElementNext = generateNextSong(nextSongs)
+        nextSong = randomElementNext
       } else {
-        currentSong = fromSongs[0]?.songId
-        nextSong = fromSongs[1]?.songId
-      }
+        if(req.query.song) {
+          currentSong = req.query.song
+        } else {
+          currentSong = fromSongs[0]
+        }
+        const songsIds = fromSongs.map(song => getFormatedId(song))
+        const currentSongId = getFormatedId(currentSong)
+        const indexNextSong = songsIds?.indexOf(currentSongId) + 1
+        nextSong = fromSongs[indexNextSong]
+      }    
 
-      const songs =  fromSongs.map((song) => 
-      song.songId === currentSong ? { ...song, played: true, position: 1 } : song
+      const mappedSongs =  fromSongs.map((song) => ({songId: song, played: false, position: 0 })
+    
+    );
+      const songs =  mappedSongs.map((song) => 
+      getFormatedId(song.songId) === getFormatedId(currentSong) ? { songId: song.songId, played: true, position: 1 } : song
     );
 
-      const data = await queueModel.create({currentSong, songs, from, fromType, nextSong, random})
+      if(!nextSong) nextSong = currentSong
+      
+      const data = await queueModel.create({currentSong, songs, from, fromType, nextSong, random});
+      const populatedData = await queueModel.findById(data._id).populate('currentSong').populate('from').exec();
 
-      res.send({data})
+      res.send({data: populatedData})
     } catch(e){
       console.log(e);
       handleHttpError(res, "Error creating queue")
