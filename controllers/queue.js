@@ -22,19 +22,9 @@ const getQueueById = async(req, res) => {
     }
 }
 
-const setRandomQueue = async(req, res) => {
-  try{
-    const {id} = req.params
-    const data = await queueModel.findByIdAndUpdate(id, [ { "$set": { "random": { "$eq": [false, "$random"] } } } ], { new: true })
-  
-    res.send({data})
-  } catch(e){
-    handleHttpError(res, "Error setting random to queue")
-  }
-}
-
 const setNextSong = async(req, res) => {
   try{
+    const {random} = req.query
     const {id} = req.params
     const data = await queueModel.findById(id).lean()
     let firstSong = false
@@ -51,7 +41,7 @@ const setNextSong = async(req, res) => {
     const nextSongs =  songs.filter(song => song.played === false );
 
     if(data.finished) throw new Error('This song is the last')
-    if(data.random === true){
+    if(random === 'true'){
       const lastSong = songs?.filter(song => song.position === songs?.length)[0]
       const nextSongFromArray = songs?.filter(song => getFormatedId(song.songId) === getFormatedId(data?.nextSong))[0]
       if(lastSong?.position === nextSongFromArray.position) {
@@ -74,8 +64,6 @@ const setNextSong = async(req, res) => {
     }
     const updated = await queueModel.findByIdAndUpdate(id, {currentSong, nextSong, songs, firstSong}, 
       { new: true }).populate('currentSong')
-      console.log(updated);
-
     res.send({updated})
   } catch(e){
     console.log(e);
@@ -108,10 +96,7 @@ const setPrevSong = async(req, res) => {
       throw new Error('This is the first song')
     }
    
-
-
     const updated = await queueModel.findByIdAndUpdate(id, {currentSong, nextSong, songs, finished: false, firstSong}, { new: true }).populate('currentSong')
-    console.log(updated);
     res.send({updated})
   } catch(e){
     console.log(e);
@@ -191,4 +176,4 @@ const deleteQueue = async(req, res) => {
   }
 }
 
-module.exports = {getQueueById, createQueue, deleteQueue, setRandomQueue, setNextSong, setPrevSong }
+module.exports = {getQueueById, createQueue, deleteQueue, setNextSong, setPrevSong }

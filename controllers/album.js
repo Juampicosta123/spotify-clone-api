@@ -9,6 +9,7 @@ const getAlbumById = async(req, res) => {
       const data = await albumModel.findById(id).populate('songs')
       res.send({data})
     } catch(e){
+      console.log(e);
       handleHttpError(res, "Error getting album")
     }
 }
@@ -37,7 +38,7 @@ const createAlbum = async (req, res) => {
     try{
       const result = validateCreateAlbum(req.body)
       if(!result.success) throw new Error('Invalid request')
-      const {title, artistOwner} = result.data
+      const {title, artistOwner, color} = result.data
 
       if(!req.file) throw new Error('You should include image file');
 
@@ -51,7 +52,8 @@ const createAlbum = async (req, res) => {
         imagelink,
         imageextension,
         imagename,
-        artistOwner
+        artistOwner,
+        color
        })
 
       res.send({data})

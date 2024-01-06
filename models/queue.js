@@ -37,10 +37,6 @@ const QueueScheme = new mongoose.Schema(
       type: String,
       required:true
      },
-     random:{
-      type: Boolean,
-      required:true
-    },
     finished:{
       type: Boolean,
       default: false
