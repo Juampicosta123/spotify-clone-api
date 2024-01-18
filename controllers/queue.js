@@ -106,7 +106,6 @@ const setPrevSong = async(req, res) => {
 
 const createQueue = async (req, res) => {
     try{
-
       const result = validateCreateQueue(req.body)
       if(!result.success) throw new Error('Invalid request')
       const { from, fromType, random } = result.data
@@ -158,7 +157,7 @@ const createQueue = async (req, res) => {
       
       const data = await queueModel.create({currentSong, songs, from, fromType, nextSong, random});
       const populatedData = await queueModel.findById(data._id).populate('currentSong').populate('from').exec();
-
+      
       res.send({data: populatedData})
     } catch(e){
       console.log(e);
