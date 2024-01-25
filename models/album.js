@@ -6,18 +6,6 @@ const AlbumScheme = new mongoose.Schema(
       type: String,
       required: true
     },
-    imagename: {
-      type: String,
-      required: true
-    }, 
-    originalimagename: {
-      type: String,
-      required: true
-    },
-    imageextension: {
-      type: String,
-      required: true
-    },
     imagelink: {
       type: String,
       required: true

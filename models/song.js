@@ -7,18 +7,6 @@ const SongScheme = new mongoose.Schema(
       ref: 'albums',
       required: true
     },
-    medianame:{
-      type: String,
-      required: true
-    },
-    originalmedianame:{
-      type: String,
-      required: true
-    },
-    extension:{
-      type: String,
-      required: true
-    },
     medialink:{
       type: String,
       required: true
