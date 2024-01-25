@@ -2,7 +2,7 @@ const playlistModel = require('../models/playlist.js');
 const songModel = require('../models/song.js');
 const { handleHttpError } = require('../utils/handleError');
 const { validateCreatePlaylist, validateAddSongToPlaylist } = require('../validators/playlist');
-const { uploadMedia } = require('../utils/uploadMedia.js')
+const { uploadImage } = require('../utils/uploadMedia.js')
 
 const getPlaylistById = async(req, res) => {
     try{
@@ -45,7 +45,7 @@ const createPlaylist = async (req, res) => {
 
       const image = req.file;
       const originalimagename = image.originalname;
-      const { medialink: imagelink, extension: imageextension, medianame: imagename } = await uploadMedia(image);
+      const { medialink: imagelink, extension: imageextension, medianame: imagename } = await uploadImage(image);
 
       const data = await playlistModel.create({
         title, 

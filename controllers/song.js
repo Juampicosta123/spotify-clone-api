@@ -2,7 +2,7 @@ const songModel = require('../models/song');
 const albumModel = require('../models/album');
 const { handleHttpError } = require('../utils/handleError');
 const { validateCreateSong } = require('../validators/song');
-const { uploadMedia } = require('../utils/uploadMedia.js')
+const { uploadSong } = require('../utils/uploadMedia.js')
 const { getFormatedId } = require('../utils/getFormatedId.js')
 
 const getSongById = async(req, res) => {
@@ -47,7 +47,7 @@ const createSong = async (req, res) => {
 
       const audio = req.file;
       const originalmedianame = audio.originalname;
-      const { medialink, extension, medianame, duration } = await uploadMedia(audio);
+      const { medialink, extension, medianame, duration } = await uploadSong(audio);
 
       const album = await albumModel.findById(albumId)
 

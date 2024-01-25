@@ -1,7 +1,7 @@
 const albumModel = require('../models/album.js');
 const { handleHttpError } = require('../utils/handleError');
 const { validateCreateAlbum } = require('../validators/album');
-const { uploadMedia } = require('../utils/uploadMedia.js')
+const { uploadImage } = require('../utils/uploadMedia.js')
 
 const getAlbumById = async(req, res) => {
     try{
@@ -44,7 +44,7 @@ const createAlbum = async (req, res) => {
 
       const image = req.file;
       const originalimagename = image.originalname;
-      const { medialink: imagelink, extension: imageextension, medianame: imagename } = await uploadMedia(image);
+      const { medialink: imagelink, extension: imageextension, medianame: imagename } = await uploadImage(image);
 
       const data = await albumModel.create({
         title, 
@@ -58,6 +58,7 @@ const createAlbum = async (req, res) => {
 
       res.send({data})
     } catch(e){
+      console.log(e);
         handleHttpError(res, "Error creating album")
     }
 }
